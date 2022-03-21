@@ -88,9 +88,6 @@ def server(port):
         #New user
         c, addr = s.accept()
 
-
-
-
         #Our list of online users
         cList.append(c)
 

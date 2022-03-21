@@ -23,7 +23,20 @@ def nextAction(verbs,verb):
 
     return None
 
+def convToEmjoi(msg):
 
+    msg = msg.replace(":D","\U0001f600")
+    msg =msg.replace(":E", "\U0001F605")
+    msg =msg.replace(":I", "\U0001F923")
+    msg =msg.replace(":M", "\U0001F602")
+    msg =msg.replace(":T", "\U0001F642")
+    msg =msg.replace(":R", "\U0001F607")
+    msg = msg.replace(":J", "\U0001F60D")
+    msg =msg.replace(":Z", "\U0001F910")
+    msg =msg.replace(":X", "\U0001F910")
+    msg = msg.replace(":P", "\U0001F612")
+
+    return msg
 # Gives a response to a sentence, by looking on first occurence of a word
 # One have different chances of something being presieved postive, neutral or negative
 # By giving a response, one random generate a number with three choices in each.
@@ -175,8 +188,6 @@ def loadFromFile(presentenceFileName):
     fileVerbs.close()
 
 
-
-
     #Load different response (positive, neutral, negative), corresponding
     #to a random value.
     filePreSentence = open(presentenceFileName, "r")
@@ -202,7 +213,10 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
         while True:
             msg = s.recv(1024).decode().strip()
             if (parentName==name and msg.split("--")[0] == "RES"):
-              print(msg.split("--")[1])
+               resMsg = msg.split("--")[1]
+               print(convToEmjoi(resMsg))
+
+
             if (msg.split("--")[0] == "EXIT{}".format(parentName)):
 
                 print("Exiting socket connection associated with bot {}".format(name))
