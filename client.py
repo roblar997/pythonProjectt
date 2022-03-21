@@ -201,7 +201,7 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
     try:
         while True:
             msg = s.recv(1024).decode().strip()
-            if (msg.split("--")[0] == "RES"+name):
+            if (parentName==name and msg.split("--")[0][:3] == "RES"):
               print(msg.split("--")[1])
             if (msg.split("--")[0] == "EXIT{}".format(parentName)):
 

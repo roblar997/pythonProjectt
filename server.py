@@ -8,6 +8,8 @@ import random
 
 def serverFunc(c,cList,verbs):
   try:
+
+
     val = random.randint(0, len(verbs) - 1)
 
     c.send(("Welcome to chat. All clients have bots installed," +
@@ -26,7 +28,6 @@ def serverFunc(c,cList,verbs):
              msg = c.recv(1024)
              #Stop listening on server side
              if not msg:
-
                  break
 
              #Terminating a client, which means trying to send a EXIT signal to all bots associated
@@ -37,9 +38,6 @@ def serverFunc(c,cList,verbs):
                  print(name)
                  for sock in writable:
                         sock.send("EXIT{}".format(name).encode().rjust(1024))
-
-
-
 
              else:
                 #Everyone ready to receive a message, which mean that not everyone gets to see the full chat
@@ -74,6 +72,7 @@ def loadFromFile():
 
 def server(port):
     cList = []
+
     verbs = loadFromFile()
     #I am connecting to server using IP version 4 addresses, and using TCP socket.
     #AF_INET stands for ipv4 and SOCK_STREAM stands for TCP.
@@ -88,8 +87,9 @@ def server(port):
     while True:
         #New user
         c, addr = s.accept()
-        #Non bloking, that is we continue runing instead of waiting for the guy to send/receive
-        c.setblocking(0)
+
+
+
 
         #Our list of online users
         cList.append(c)
