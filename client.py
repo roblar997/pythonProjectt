@@ -186,9 +186,8 @@ def loadFromFile(presentenceFileName):
     preSentencesPositive = []
 
     preSentences = filePreSentence.readlines()
-    #Response number idx has a negative, neutral and positive response
-    #assoicated with it
-    for idx, preSentence in enumerate(preSentences):
+
+    for preSentence in preSentences:
         preSentencesNegative.append(preSentence.split("!!")[0].strip())
         preSentencesNeutral.append(preSentence.split("!!")[1].strip())
         preSentencesPositive.append(preSentence.split("!!")[2].strip().replace("\n", ""))
@@ -206,9 +205,8 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
               print(msg.split("--")[1])
             elif(msg.split("--")[0][:3] == "REQ"):
                 str = msg.split("--")[0]
-                toSend = "RES"+str[3:len(str)] + "--" + name + ">" + bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral, preSentencesPositive,
-                                      preSentencesNeutral, preSentencesNegative)
-                s.send((toSend).encode().rjust(1024))
+                s.send(("RES{}--{}>{}".format(str[3:len(str)],name,bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral, preSentencesPositive,
+                                      preSentencesNeutral, preSentencesNegative)).encode().rjust(1024)))
     except:
         s.close()
         return
@@ -233,7 +231,7 @@ def backgroundClient(host, port, bot,name):
 
     t1 = threading.Thread(target=listener, args=(
     s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral, preSentencesNegative,))
-    msg = s.recv(1024).decode().strip()
+
     t1.start()
 
 def interactiveClient(host, port, bot,name):
@@ -255,6 +253,7 @@ def interactiveClient(host, port, bot,name):
     s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral, preSentencesNegative,))
     msg = s.recv(1024).decode().strip()
     print(msg)
+
     t1.start()
 
     while True:
@@ -262,12 +261,20 @@ def interactiveClient(host, port, bot,name):
                 print("\n")
                 print(name + ":")
                 msg = input()
-                s.send(("REQ" + name + "--" + msg).encode().rjust(1024))
+                if(msg=="exit"):
+                    s.send("EXIT".encode().rjust(1024))
+                    msg = s.recv(1024).decode().strip()
+                    if not msg:
+                        print("Exiting client {}".format(name))
+
+                    return
+                s.send(("REQ{}--{}".format(name,msg)).encode().rjust(1024))
                 time.sleep(0.1)
 
         except:
             s.close()
             return
+    print("{} has exited chat").format(name)
     s.close()
 
 nameinteractive="Moran"

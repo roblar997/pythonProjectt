@@ -9,7 +9,8 @@ import random
 def serverFunc(c,cList,verbs):
   try:
     val = random.randint(0, len(verbs) - 1)
-    c.send(( "Welcome to chat. All clients have bots installed," +
+
+    c.send(("Welcome to chat. All clients have bots installed," +
              "that responds to verbs in sentences you come with. I suggest you make a sentence"+
              " containing the word -- {} --   as the first verb in the sentence".format(verbs[val])).encode().rjust(1024))
     while True:
@@ -24,7 +25,8 @@ def serverFunc(c,cList,verbs):
         if c in readable:
              msg = c.recv(1024)
              #It didnt send anything, so end conncection with client.
-             if not msg:
+             if msg.decode().strip()=="EXIT":
+                 c.send("")
                  break
 
              #Everyone ready to receive a message, which mean that not everyone gets to see the full chat
@@ -55,6 +57,7 @@ def loadFromFile():
         verbs[idx] = verb.split(" ")[0]
     fileVerbs.close()
     return verbs
+
 def server(port):
     cList = []
     verbs = loadFromFile()
@@ -83,4 +86,3 @@ def server(port):
 
 
 server(5000)
-
