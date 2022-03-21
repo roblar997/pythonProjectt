@@ -201,7 +201,7 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
     try:
         while True:
             msg = s.recv(1024).decode().strip()
-            if (parentName==name and msg.split("--")[0][:3] == "RES"):
+            if (parentName==name and msg.split("--")[0] == "RES"):
               print(msg.split("--")[1])
             if (msg.split("--")[0] == "EXIT{}".format(parentName)):
 
@@ -209,9 +209,8 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
                 s.send("")
                 s.close()
 
-            elif(msg.split("--")[0][:3] == "REQ"):
-                str = msg.split("--")[0]
-                s.send(("RES{}--{}>{}".format(str[3:len(str)],name,bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral, preSentencesPositive,
+            elif(msg.split("--")[0] == "REQ"):
+                s.send(("RES--{}>{}".format(name,bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral, preSentencesPositive,
                                       preSentencesNeutral, preSentencesNegative)).encode().rjust(1024)))
     except:
         s.close()
@@ -285,7 +284,7 @@ def interactiveClient(host, port, bot,name,namesbackground,bots):
                     print("All socket connections has been terminated. Exiting client")
                     return
                 else:
-                    s.send(("REQ{}--{}".format(name,msg)).encode().rjust(1024))
+                    s.send(("REQ--{}".format(msg)).encode().rjust(1024))
                 time.sleep(0.1)
 
         except:
