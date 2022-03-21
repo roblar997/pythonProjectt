@@ -204,8 +204,10 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
             if (msg.split("--")[0] == "RES"+name):
               print(msg.split("--")[1])
             if (msg.split("--")[0] == "EXIT{}".format(parentName)):
-                s.close()
+
                 print("Exiting socket connection associated with bot {}".format(name))
+                s.send("")
+                s.close()
 
             elif(msg.split("--")[0][:3] == "REQ"):
                 str = msg.split("--")[0]

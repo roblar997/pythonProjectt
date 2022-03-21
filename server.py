@@ -24,7 +24,13 @@ def serverFunc(c,cList,verbs):
         #Connection is ready to send to us
         if c in readable:
              msg = c.recv(1024)
-             #It didnt send anything, so end conncection with client.
+             #Stop listening on server side
+             if not msg:
+
+                 break
+
+             #Terminating a client, which means trying to send a EXIT signal to all bots associated
+             #with a client
              msgDec = msg.decode().strip()
              if msgDec[:4]=="EXIT":
                  name = msgDec[4:]
@@ -32,22 +38,25 @@ def serverFunc(c,cList,verbs):
                  for sock in writable:
                         sock.send("EXIT{}".format(name).encode().rjust(1024))
 
-                 break
 
-             #Everyone ready to receive a message, which mean that not everyone gets to see the full chat
-             #This makes sense if something is in realtime and we can accept that offline users arent supposed
-             #to get messages, for example in a realtime gaming chat. That something happens in realtime, is
-             #more important than wheter or not everyone gets all messages
-             for sock in writable:
-              #Make sure not to send to myself
-              if c != sock:
-                #Send message I just got received, to all than are able to receive.
-                sock.send(msg)
 
+
+             else:
+                #Everyone ready to receive a message, which mean that not everyone gets to see the full chat
+                #This makes sense if something is in realtime and we can accept that offline users arent supposed
+                #to get messages, for example in a realtime gaming chat. That something happens in realtime, is
+                 #more important than wheter or not everyone gets all messages
+                 for sock in writable:
+                 #Make sure not to send to myself
+                    if c != sock:
+                     #Send message I just got received, to all than are able to receive.
+                     sock.send(msg)
+    print("Client is now exiting")
     #Kick out user
     cList.remove(c)
   except:
       #Something went wrong, kick out user
+      print("Client is now exiting")
       cList.remove(c)
 
 ##
