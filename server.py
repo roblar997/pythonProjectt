@@ -9,10 +9,9 @@ import random
 def serverFunc(c,cList,verbs):
   try:
     val = random.randint(0, len(verbs) - 1)
-    welcomeMessage = "Welcome to chat. All clients have bots installed," \
-                       "that responds to verbs in sentences you come with. I suggest you make a sentence" \
-                       " containing the word -- " + verbs[val] + "--   as the first verb in the sentence"
-    c.send((welcomeMessage).encode().rjust(1024))
+    c.send(( "Welcome to chat. All clients have bots installed," +
+             "that responds to verbs in sentences you come with. I suggest you make a sentence"+
+             " containing the word -- {} --   as the first verb in the sentence".format(verbs[val])).encode().rjust(1024))
     while True:
 
         #Our sockets is non-blocking, so we just take whats ready
