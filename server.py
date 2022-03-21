@@ -25,8 +25,13 @@ def serverFunc(c,cList,verbs):
         if c in readable:
              msg = c.recv(1024)
              #It didnt send anything, so end conncection with client.
-             if msg.decode().strip()=="EXIT":
-                 c.send("")
+             msgDec = msg.decode().strip()
+             if msgDec[:4]=="EXIT":
+                 name = msgDec[4:]
+                 print(name)
+                 for sock in writable:
+                        sock.send("EXIT{}".format(name).encode().rjust(1024))
+
                  break
 
              #Everyone ready to receive a message, which mean that not everyone gets to see the full chat

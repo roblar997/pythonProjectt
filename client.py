@@ -197,12 +197,16 @@ def loadFromFile(presentenceFileName):
 
 # A function that listen to a socket, and send back a response
 def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,
-             preSentencesNegative):
+             preSentencesNegative,parentName):
     try:
         while True:
             msg = s.recv(1024).decode().strip()
             if (msg.split("--")[0] == "RES"+name):
               print(msg.split("--")[1])
+            if (msg.split("--")[0] == "EXIT{}".format(parentName)):
+                s.close()
+                print("Exiting socket connection associated with bot {}".format(name))
+
             elif(msg.split("--")[0][:3] == "REQ"):
                 str = msg.split("--")[0]
                 s.send(("RES{}--{}>{}".format(str[3:len(str)],name,bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral, preSentencesPositive,
@@ -213,7 +217,32 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
     s.close()
 
 
-def backgroundClient(host, port, bot,name):
+def backgroundClient(host, port, bot,name,parentName):
+    try:
+        botNumber = bot.__name__[3:]
+        fileName = "preSentence{}.txt".format(botNumber)
+
+        #Loading stuff that is important to make decision on how to respond to a sentence
+        #That is chances for an action to be associated as a positive thing and a natural thing
+        #A response can be either positive sentence, a netural sentence or a negative sentence
+        #
+        verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral, preSentencesNegative = loadFromFile(fileName)
+
+
+        # connect it to server and port number
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, port))
+
+        t1 = threading.Thread(target=listener, args=(
+        s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral, preSentencesNegative,parentName,))
+
+        t1.start()
+
+    except:
+        return
+
+
+def interactiveClient(host, port, bot,name,namesbackground,bots):
 
     botNumber = bot.__name__[3:]
     fileName = "preSentence{}.txt".format(botNumber)
@@ -224,37 +253,22 @@ def backgroundClient(host, port, bot,name):
     #
     verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral, preSentencesNegative = loadFromFile(fileName)
 
-
     # connect it to server and port number
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((host, port))
 
     t1 = threading.Thread(target=listener, args=(
-    s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral, preSentencesNegative,))
-
-    t1.start()
-
-def interactiveClient(host, port, bot,name):
-
-    botNumber = bot.__name__[3:]
-    fileName = "preSentence{}.txt".format(botNumber)
-
-    #Loading stuff that is important to make decision on how to respond to a sentence
-    #That is chances for an action to be associated as a positive thing and a natural thing
-    #A response can be either positive sentence, a netural sentence or a negative sentence
-    #
-    verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral, preSentencesNegative = loadFromFile(fileName)
-
-    # connect it to server and port number
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((host, port))
-
-    t1 = threading.Thread(target=listener, args=(
-    s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral, preSentencesNegative,))
+    s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral, preSentencesNegative,name,))
     msg = s.recv(1024).decode().strip()
     print(msg)
 
     t1.start()
+    childThreads = []
+    #To make sure all bot-clients gets killed, when interactive client gets killed.
+    for idx, name2 in enumerate(namesbackground):
+        t2 = threading.Thread(target=backgroundClient, args=('localhost', 5000, bots[idx], name2,name,))
+        t2.start()
+        childThreads.append(t2)
 
     while True:
         try:
@@ -262,13 +276,14 @@ def interactiveClient(host, port, bot,name):
                 print(name + ":")
                 msg = input()
                 if(msg=="exit"):
-                    s.send("EXIT".encode().rjust(1024))
-                    msg = s.recv(1024).decode().strip()
-                    if not msg:
-                        print("Exiting client {}".format(name))
-
+                    s.send("EXIT{}".format(name).encode().rjust(1024))
+                    for thread in childThreads:
+                        thread.join()
+                    time.sleep(0.5)
+                    print("All socket connections has been terminated. Exiting client")
                     return
-                s.send(("REQ{}--{}".format(name,msg)).encode().rjust(1024))
+                else:
+                    s.send(("REQ{}--{}".format(name,msg)).encode().rjust(1024))
                 time.sleep(0.1)
 
         except:
@@ -277,16 +292,17 @@ def interactiveClient(host, port, bot,name):
     print("{} has exited chat").format(name)
     s.close()
 
+#Interactive-client that can use terminal. This client also have a bot, that responds on behalf on you.
 nameinteractive="Moran"
-namesbackground=["Jumper","Hanne","Olivia","Trude"]
 botInteractive = bot1
 
+#One can have a up to 4 types of bot-clients that can work with you in a discussion.
+#When you quit the chat, the bots will also leave the chat
+namesbackground = ["Jumper", "Hanne", "Olivia", "Trude"]
 bots = [bot1,bot2,bot3,bot4]
 
-t1 = threading.Thread(target=interactiveClient, args=('localhost', 5000, botInteractive, nameinteractive, ))
+t1 = threading.Thread(target=interactiveClient, args=('localhost', 5000, botInteractive, nameinteractive,namesbackground,bots, ))
 t1.start()
 
-for idx, name in enumerate(namesbackground):
-    t1 = threading.Thread(target=backgroundClient, args=('localhost', 5000, bots[idx],name, ))
-    t1.start()
+
 
