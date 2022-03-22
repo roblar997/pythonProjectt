@@ -65,7 +65,7 @@ def bot1(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive,
 
     #No verb found, so use default response
     if action is None:
-        return "I don't understand, please explain"
+        return "I don't understand, please explain",None
     val = random.uniform(0, 1)
     rand = random.randint(0, len(preSentencesPositive) - 1)
 
@@ -88,7 +88,7 @@ def bot2(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive,
 
     #No verb found, so use default response
     if action is None:
-        return "This I do not get"
+        return "This I do not get",None
 
     action2 = verbs[random.randint(0, len(verbs) - 1)]
 
@@ -114,7 +114,7 @@ def bot3(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive,
 
     #No verb found, so use default response
     if action is None:
-        return "I cant understand this"
+        return "I cant understand this","jump"
     val = random.uniform(0, 1)
     rand = random.randint(0, len(preSentencesPositive) - 1)
 
@@ -137,7 +137,7 @@ def bot4(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive,
     action = extractAction(verbs, sentence)
     #No verb found, so use default response
     if action is None:
-        return "ohm, this didnt go through my head"
+        return "ohm, this didnt go through my head",None
     actionNext = nextAction(verbs,action)
 
 
@@ -249,16 +249,15 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
             if (msg.split("--")[0] == "RES{}".format(name)):
                 print(convToEmjoi(msg.split("--")[1]))
 
-            #PART OF 'Client to all client' protocol
-            #Everyone gets this message from the one client sending a message from terminal, through server
+            # PART OF 'Client to all client' protocol
+            # Everyone gets this message from the one client sending a message from terminal, through server
             elif (msg.split("--")[0][:3] == "REQ"):
                 str = msg.split("--")[0]
-                response,currentMemory = bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
-                                                 preSentencesPositive,
-                                                 preSentencesNeutral, preSentencesNegative,currentMemory)
+                response, currentMemory = bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
+                                    preSentencesPositive,
+                                    preSentencesNeutral, preSentencesNegative, currentMemory)
 
-
-                toSend = "RES{}--{}>{}".format(str[3:len(str)], name,response)
+                toSend = "RES{}--{}>{}".format(str[3:len(str)], name, response)
                 s.send((toSend).encode().rjust(1024))
 
 
@@ -270,20 +269,21 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
             # Suggestion from Host, that all clients are supposed to give response to
             elif (msg.split("--")[0][:4] == "HOST"):
                 print("\n\nHost>{}".format(convToEmjoi(msg.split("--")[1])))
-                response = "{}>{}".format(name, bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
-                                                         preSentencesPositive,
-                                                         preSentencesNeutral, preSentencesNegative))
-                toSend = "HOSTRES--{}".format(response)
-                print(convToEmjoi(response))
+                response, currentMemory = bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
+                                              preSentencesPositive,
+                                              preSentencesNeutral, preSentencesNegative, currentMemory)
+                result = "{}>{}".format(name, response)
+                print(convToEmjoi(result))
+                toSend = "HOSTRES--{}".format(result)
+
                 s.send((toSend).encode().rjust(1024))
 
-
-
-            #Parent thread wants to quit, and server is notified and agrees
-            #Time to stops listening to socket
-            if (msg=="EXIT"):
+            # Parent thread wants to quit, and server is notified and agrees
+            # Time to stops listening to socket
+            if (msg == "EXIT"):
                 s.socket()
                 break
+
 
 
     except:
