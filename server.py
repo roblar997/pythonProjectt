@@ -2,7 +2,6 @@
 
 import socket
 import threading
-import time
 import select
 import random
 
@@ -25,9 +24,14 @@ def serverFunc(c,cList,verbs):
                                                         cList)
         #Connection is ready to send to us
         if c in readable:
+
              msg = c.recv(1024)
+             # For debug purposes
+             print("Thread {} sending message. {} \n".format(c,msg.decode().strip()))
              #Stop listening on server side
              if not msg:
+                 # For debug purposes
+                 print("Thread {} did get empty message. Is now breaking loop\n".format(c))
                  break
 
              #Terminating a client, which means trying to send a EXIT signal to all bots associated
@@ -37,6 +41,8 @@ def serverFunc(c,cList,verbs):
                  #Name of the client, that has all the bots
                  name = msgDec[4:]
                  for sock in writable:
+                        # For debug purposes
+                        print("Thread {} got EXIT signal\n".format(c))
                         sock.send("EXIT{}".format(name).encode().rjust(1024))
 
              else:
@@ -47,11 +53,18 @@ def serverFunc(c,cList,verbs):
                  for sock in writable:
                  #Make sure not to send to myself
                     if c != sock:
+                     # For debug purposes
+                     print("Thread {} sending message. {} to {} \n".format(c, msg.decode().strip(),sock))
                      #Send message I just got received, to all than are able to receive.
                      sock.send(msg)
+
+    #For debug purposes
+    print("Client {} has been removed from server".format(c))
     #Kick out user
     cList.remove(c)
   except:
+      # For debug purposes
+      print("Client {} has been removed from server".format(c))
       #Something went wrong, kick out user
       cList.remove(c)
 
@@ -85,7 +98,8 @@ def server(port):
     while True:
         #New user
         c, addr = s.accept()
-
+        #For debug purposes
+        print("Client {} has been connected to server".format(c))
         #Our list of online users
         cList.append(c)
 

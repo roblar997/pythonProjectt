@@ -189,9 +189,7 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
     try:
         while True:
             msg = s.recv(1024).decode().strip()
-            if (msg.split("--")[0] == "RES"):
-               #Dont print out on bot-clients, only on interactive clients
-               if parentName == name:
+            if (msg.split("--")[0] == "RES{}".format(name)):
                  resMsg = msg.split("--")[1]
                  print(convToEmjoi(resMsg))
 
@@ -205,7 +203,8 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
 
 
             elif (msg.split("--")[0][:3] == "REQ"):
-                s.send(("RES--{}>{}".format(name,bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral, preSentencesPositive,
+                str = msg.split("--")[0]
+                s.send(("RES{}--{}>{}".format(str[3:len(str)],name,bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral, preSentencesPositive,
                                       preSentencesNeutral, preSentencesNegative)).encode().rjust(1024)))
     except:
         s.close()
