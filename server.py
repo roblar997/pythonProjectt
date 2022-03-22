@@ -11,9 +11,9 @@ def serverFunc(c,cList,verbs):
 
     val = random.randint(0, len(verbs) - 1)
 
-    c.send(("Welcome to chat. All clients have bots installed," +
-             "that responds to verbs in sentences you come with. I suggest you make a sentence"+
-             " containing the word -- {} --   as the first verb in the sentence. To exit, write 'exit' in the terminal".format(verbs[val])).encode().rjust(1024))
+    c.send((" Welcome to chat. All clients have bots installed," +
+             "that responds to verbs in sentences you come with. \n I suggest you make a sentence"+
+             " containing the word -- {} --   as the first verb in the sentence. \n To exit, write 'exit' in the terminal".format(verbs[val])).encode().rjust(1024))
     while True:
 
         #Our sockets is non-blocking, so we just take whats ready
