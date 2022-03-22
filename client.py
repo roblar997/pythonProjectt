@@ -109,7 +109,8 @@ def bot2(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive,
 # Same as bot 1, except it adds ing for first {}. For second {} it takes memory of previous response made by this bot and adds ing to the end
 # If memory=None, then it get set to "jump"
 def bot3(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,preSentencesNegative,memory="jump"):
-
+    if(memory==None):
+        memory="jump"
     action = extractAction(verbs, sentence)
 
     #No verb found, so use default response
@@ -325,6 +326,7 @@ def client(host, port, bot,name = None):
     while True:
         try:
             time.sleep(0.5)
+            print("\n")
             #If one want it as user input
             msg = input("Terminal::{}>".format(name))
 
@@ -352,9 +354,9 @@ def main(argv):
 
     if(len(argv) == 2 and (str(argv[1])=="-h" or str(argv[1])=="--help")):
         print("Explanation of arguments\n")
-        print("#1 argument: hostname             --  type: string\n")
-        print("#2 argument: port number          --  type: integer\n")
-        print("#3 argument: name of bot function --  type: string\n")
+        print("#1 argument: hostname                  --  type: string\n")
+        print("#2 argument: port number               --  type: integer\n")
+        print("#3 argument: name of bot function      --  type: string\n")
         print("#4 argument [OPTIONAL]: name of client --  type: string\n")
         exit(0)
     if(len(argv) < 4):

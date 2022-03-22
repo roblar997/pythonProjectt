@@ -46,7 +46,6 @@ def serverFunc(c,cList,verbs):
                  continue
 
              if msg.decode().strip() == "EXIT":
-                 print("{} got EXIT signal".format(c))
                  if c in writable:
                      c.send(msg)
                      break
@@ -63,10 +62,9 @@ def serverFunc(c,cList,verbs):
                 sock.send(msg)
 
     #Kick out user
-    print("Client {} is being kicked out".format(c))
     cList.remove(c)
   except:
-      print("Client {} is being kicked out".format(c))
+
       #Something went wrong, kick out user
       cList.remove(c)
 
