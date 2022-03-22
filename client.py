@@ -279,9 +279,7 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
                 s.send((toSend).encode().rjust(1024))
 
             # Parent thread wants to quit, and server is notified and agrees
-            # Time to stops listening to socket
             if (msg == "EXIT"):
-                s.socket()
                 break
 
 
