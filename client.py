@@ -34,6 +34,8 @@ def nextAction(verbs,verb):
 #Convert msg to emjoi in terms of unicode
 def convToEmjoi(msg):
 
+    msg = msg.replace(":)", "\U0001f600")
+    msg = msg.replace(":(", "\U0001F620")
     msg = msg.replace(":D","\U0001f600")
     msg =msg.replace(":E", "\U0001F605")
     msg =msg.replace(":I", "\U0001F923")
@@ -217,9 +219,8 @@ def loadFromFile(fileName):
     preSentencesPositive = []
 
     preSentences = filePreSentence.readlines()
-    #Response number idx has a negative, neutral and positive response
-    #assoicated with it
-    for idx, preSentence in enumerate(preSentences):
+    #Negative, neutral or positive response
+    for preSentence in preSentences:
         preSentencesNegative.append(preSentence.split("!!")[0].strip())
         preSentencesNeutral.append(preSentence.split("!!")[1].strip())
         preSentencesPositive.append(preSentence.split("!!")[2].strip().replace("\n", ""))
@@ -233,8 +234,13 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
     try:
         while True:
             msg = s.recv(1024).decode().strip()
-            if (msg.split("--")[0] == "RES"+name):
-              print(msg.split("--")[1])
+
+            if (msg=="EXIT{}".format(name)):
+                s.socket()
+                break
+
+            if (msg.split("--")[0] == "RES{}".format(name)):
+              print(convToEmjoi(msg.split("--")[1]))
             elif(msg.split("--")[0][:3] == "REQ"):
                 str = msg.split("--")[0]
                 toSend = "RES"+str[3:len(str)] + "--" + name + ">" + bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral, preSentencesPositive,
@@ -242,18 +248,26 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
                 s.send((toSend).encode().rjust(1024))
     except:
         s.close()
+        print("Client is shuting down")
         return
+    print("Client is shuting down")
     s.close()
 
 
 
-def client(host, port, bot):
-    names = ["Olivia","Per","Jacob","Severin"]
+def client(host, port, bot,name = None):
+
+
     botNumber = bot.__name__[3:]
+
     if(int(botNumber) <= 0 or int(botNumber) > 4):
         print("Illegal name of bot function")
         exit(-1)
-    name = names[int(botNumber)-1]
+
+    if name == None:
+         names = ["Olivia", "Per", "Jacob", "Severin"]
+         name = names[int(botNumber)-1]
+
     fileName = "preSentence{}.txt".format(botNumber)
 
     #Loading stuff that is important to make decision on how to respond to a sentence
@@ -267,16 +281,22 @@ def client(host, port, bot):
     s.connect((host, port))
     t1 = threading.Thread(target=listener, args=(
     s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral, preSentencesNegative,))
-
+    msg = s.recv(1024).decode().strip()
+    print(msg)
     t1.start()
 
     while True:
         try:
+            msg = input("Terminal::{}>".format(name))
+            print("\n{}>{}".format(name,convToEmjoi(msg)))
+            if(msg=="exit"):
+                s.send("EXIT{}".format(name).encode().rjust(1024))
+                t1.join()
+                exit(0)
+            else:
+                s.send(("REQ{}--{}".format(name,msg)).encode().rjust(1024))
+            time.sleep(0.5)
             print("\n")
-            print(name + "(wait 5 sec to send new message):")
-            msg = input()
-            s.send(("REQ" + name + "--" + msg).encode().rjust(1024))
-            time.sleep(5)
 
         except:
             s.close()
@@ -288,14 +308,15 @@ def client(host, port, bot):
 
 def main(argv):
 
-    if(len(argv) == 2 and str(argv[1])=="-h" or str(argv[1])=="--help"):
+    if(len(argv) == 2 and (str(argv[1])=="-h" or str(argv[1])=="--help")):
         print("Explanation of arguments\n")
-        print("#1 argument: hostname             --  type: string")
-        print("#2 argument: port number          --  type: integer")
-        print("#3 argument: name of bot function --  type: string")
+        print("#1 argument: hostname             --  type: string\n")
+        print("#2 argument: port number          --  type: integer\n")
+        print("#3 argument: name of bot function --  type: string\n")
+        print("#4 argument [OPTIONAL]: name of client --  type: string\n")
         exit(0)
     if(len(argv) < 4):
-        print("Not enough arguments given")
+        print("Not enough arguments given\n")
         exit(-1)
     bot=bot1
     localhost='localhost'
@@ -304,13 +325,13 @@ def main(argv):
     if(argv[1].isprintable()):
         localhost=str(argv[1])
     else:
-        print("Localhost should be a string")
+        print("Localhost should be a string\n")
         exit(-1)
 
     if(argv[2].isnumeric()):
         port=int(argv[2])
     else:
-        print("Port should be a number")
+        print("Port should be a number\n")
         exit(-1)
 
     if(str(argv[3])=="bot1"):
@@ -320,9 +341,14 @@ def main(argv):
     elif (str(argv[3]) == "bot3"):
         bot = bot3
     else:
-        print("Bot function does not exist. Only bot1,bot2,bot3 and bot4 function exist")
+        print("Bot function does not exist. Only bot1,bot2,bot3 and bot4 function exist\n")
         exit(-1)
-    client(localhost, port, bot)
+    if(len(argv)>=5 and argv[4].isprintable()):
+        name = str(argv[4])
+        client(localhost, port, bot,name)
+
+    else:
+        client(localhost, port, bot)
 
 
 

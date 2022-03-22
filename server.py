@@ -9,10 +9,11 @@ import random
 def serverFunc(c,cList,verbs):
   try:
     val = random.randint(0, len(verbs) - 1)
-    welcomeMessage = "Welcome to chat. All clients have bots installed," \
-                       "that responds to verbs in sentences you come with. I suggest you make a sentence" \
-                       " containing the word -- " + verbs[val] + "--   as the first verb in the sentence"
-    c.send((welcomeMessage).encode().rjust(1024))
+
+    c.send(("Welcome to chat. All clients have bots installed," +
+            "that responds to verbs in sentences .\nyou come with I suggest you make a sentence"+
+            " containing the word -- {} --   \nas the first verb in the sentence"+
+            "To exit write 'exit' in the terminal").format(verbs[val]).encode().rjust(1024))
     while True:
 
         #Our sockets is non-blocking, so we just take whats ready
@@ -21,12 +22,21 @@ def serverFunc(c,cList,verbs):
         readable, writable, exceptional = select.select(cList,
                                                         cList,
                                                         cList)
+
         #Connection is ready to send to us
         if c in readable:
              msg = c.recv(1024)
-             #It didnt send anything, so end conncection with client.
+
+             #Should not happen disconnection
              if not msg:
                  break
+
+             if msg.decode().strip()[:4] == "EXIT":
+                 print("{} got EXIT signal".format(c))
+                 if c in writable:
+                     c.send(msg)
+                     break
+
 
              #Everyone ready to receive a message, which mean that not everyone gets to see the full chat
              #This makes sense if something is in realtime and we can accept that offline users arent supposed
@@ -39,8 +49,10 @@ def serverFunc(c,cList,verbs):
                 sock.send(msg)
 
     #Kick out user
+    print("Client {} is being kicked out".format(c))
     cList.remove(c)
   except:
+      print("Client {} is being kicked out".format(c))
       #Something went wrong, kick out user
       cList.remove(c)
 
@@ -72,6 +84,8 @@ def server(port):
     while True:
         #New user
         c, addr = s.accept()
+        print("{} is connected".format(c))
+
         #Non bloking, that is we continue runing instead of waiting for the guy to send/receive
         c.setblocking(0)
 
