@@ -235,7 +235,7 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
         while True:
             msg = s.recv(1024).decode().strip()
 
-            if (msg=="EXIT{}".format(name)):
+            if (msg=="EXIT"):
                 s.socket()
                 break
 
@@ -288,9 +288,9 @@ def client(host, port, bot,name = None):
     while True:
         try:
             msg = input("Terminal::{}>".format(name))
-            print("\n{}>{}".format(name,convToEmjoi(msg)))
+            print(u"\n{}>{}".format(name,convToEmjoi(msg)))
             if(msg=="exit"):
-                s.send("EXIT{}".format(name).encode().rjust(1024))
+                s.send("EXIT".encode().rjust(1024))
                 t1.join()
                 exit(0)
             else:
@@ -340,6 +340,8 @@ def main(argv):
         bot=bot2
     elif (str(argv[3]) == "bot3"):
         bot = bot3
+    elif (str(argv[3]) == "bot4"):
+        bot = bot4
     else:
         print("Bot function does not exist. Only bot1,bot2,bot3 and bot4 function exist\n")
         exit(-1)

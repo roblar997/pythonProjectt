@@ -31,7 +31,7 @@ def serverFunc(c,cList,verbs):
              if not msg:
                  break
 
-             if msg.decode().strip()[:4] == "EXIT":
+             if msg.decode().strip() == "EXIT":
                  print("{} got EXIT signal".format(c))
                  if c in writable:
                      c.send(msg)
