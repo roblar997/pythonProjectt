@@ -256,8 +256,9 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
                                                          preSentencesPositive,
                                                          preSentencesNeutral, preSentencesNegative))
 
-                toSend = "HOSTRES--{}".format(name, response)
                 print(convToEmjoi(response))
+                toSend = "HOSTRES--{}".format(response)
+
                 s.send((toSend).encode().rjust(1024))
 
 
@@ -309,7 +310,7 @@ def client(host, port, bot,name = None):
 
     while True:
         try:
-            time.sleep(0.5)
+            time.sleep(45)
             #If one want it as user input
             msg = input("Terminal::{}>".format(name))
 
