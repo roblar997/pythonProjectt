@@ -5,7 +5,6 @@ import sys
 import threading
 import select
 import random
-import time
 
 
 def serverFunc(c,cList,verbs):
@@ -35,7 +34,7 @@ def serverFunc(c,cList,verbs):
         #Connection is ready to send to us
         if c in readable:
              msg = c.recv(1024)
-             #Should not happen disconnection
+             #Should not happen, disconnection
              if not msg:
                  break
 
@@ -84,6 +83,7 @@ def loadFromFile():
     fileVerbs.close()
     return verbs
 def server(port):
+    #list of clients
     cList = []
     verbs = loadFromFile()
     #I am connecting to server using IP version 4 addresses, and using TCP socket.
