@@ -5,13 +5,13 @@ import sys
 import threading
 import select
 import random
+import time
+
 
 def serverFunc(c,cList,verbs):
   try:
     val = random.randint(0, len(verbs) - 1)
-    # Our sockets is non-blocking, so we just take whats ready
-    # to receive or send, then send/receive and move on without any waiting.
-    # for the operation to be finished.
+
     readable, writable, exceptional = select.select(cList,
                                                     cList,
                                                     cList)
@@ -20,14 +20,21 @@ def serverFunc(c,cList,verbs):
     #Everyone can see the full dialoge
     for sock in writable:
         sock.send(("HOST--Anyone want to {} ?").format(verbs[val]).encode().rjust(1024))
+    # Non bloking, that is we continue runing instead of waiting for the guy to send/receive
+
 
     while True:
 
-
+        # Our sockets is non-blocking, so we just take whats ready
+        # to receive or send, then send/receive and move on without any waiting.
+        # for the operation to be finished.
+        readable, writable, exceptional = select.select(cList,
+                                                        cList,
+                                                        cList)
         #Connection is ready to send to us
         if c in readable:
              msg = c.recv(1024)
-
+             print(msg.decode().strip())
              #Should not happen disconnection
              if not msg:
                  break
@@ -86,9 +93,8 @@ def server(port):
         #New user
         c, addr = s.accept()
         print("{} is connected".format(c))
-
-        #Non bloking, that is we continue runing instead of waiting for the guy to send/receive
         c.setblocking(0)
+
 
         #Our list of online users
         cList.append(c)

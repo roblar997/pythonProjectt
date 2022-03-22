@@ -234,7 +234,7 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
     try:
         while True:
             msg = s.recv(1024).decode().strip()
-
+            print(msg)
             if (msg.split("--")[0][:3] == "RES"):
                 print(convToEmjoi(msg.split("--")[1]))
             elif (msg.split("--")[0][:3] == "REQ"):
@@ -248,6 +248,7 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
 
                 # Response to host, from other participants
             elif (msg.split("--")[0][:7] == "HOSTRES"):
+                print("OK")
                 print(convToEmjoi(msg.split("--")[1]))
 
             elif (msg.split("--")[0][:4] == "HOST"):
@@ -255,10 +256,8 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
                 response = "{}>{}".format(name, bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
                                                          preSentencesPositive,
                                                          preSentencesNeutral, preSentencesNegative))
-
-                print(convToEmjoi(response))
                 toSend = "HOSTRES--{}".format(response)
-
+                print(toSend)
                 s.send((toSend).encode().rjust(1024))
 
 
@@ -310,7 +309,7 @@ def client(host, port, bot,name = None):
 
     while True:
         try:
-            time.sleep(45)
+
             #If one want it as user input
             msg = input("Terminal::{}>".format(name))
 
