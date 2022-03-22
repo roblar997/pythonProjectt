@@ -14,7 +14,7 @@ def serverFunc(c,cList,verbs):
 
     c.send(("Welcome to chat. All clients have bots installed," +
              "that responds to verbs in sentences you come with. I suggest you make a sentence"+
-             " containing the word -- {} --   as the first verb in the sentence".format(verbs[val])).encode().rjust(1024))
+             " containing the word -- {} --   as the first verb in the sentence. To exit, write 'exit' in the terminal".format(verbs[val])).encode().rjust(1024))
     while True:
 
         #Our sockets is non-blocking, so we just take whats ready
@@ -34,8 +34,8 @@ def serverFunc(c,cList,verbs):
              #with a client
              msgDec = msg.decode().strip()
              if msgDec[:4]=="EXIT":
+                 #Name of the client, that has all the bots
                  name = msgDec[4:]
-                 print(name)
                  for sock in writable:
                         sock.send("EXIT{}".format(name).encode().rjust(1024))
 
@@ -49,12 +49,10 @@ def serverFunc(c,cList,verbs):
                     if c != sock:
                      #Send message I just got received, to all than are able to receive.
                      sock.send(msg)
-    print("Client is now exiting")
     #Kick out user
     cList.remove(c)
   except:
       #Something went wrong, kick out user
-      print("Client is now exiting")
       cList.remove(c)
 
 ##
