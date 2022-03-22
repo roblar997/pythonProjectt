@@ -281,8 +281,9 @@ def interactiveClient(host, port, bot,name,namesbackground,bots):
     while True:
         try:
                 print("\n")
-                print(name + ":")
+                print("Write to terminal>")
                 msg = input()
+                print("{}>{}".format(name,convToEmjoi(msg)))
                 #Notifies all the bots associated with this client (parentName), to quit. When they get EXIT message, they will send a empty message back
                 #to get them kicked out
                 if(msg=="exit"):

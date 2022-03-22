@@ -59,12 +59,12 @@ def serverFunc(c,cList,verbs):
                      sock.send(msg)
 
     #For debug purposes
-    print("Client {} has been removed from server".format(c))
+    print("Client {} has been removed from server\n".format(c))
     #Kick out user
     cList.remove(c)
   except:
       # For debug purposes
-      print("Client {} has been removed from server".format(c))
+      print("Client {} has been removed from server\n".format(c))
       #Something went wrong, kick out user
       cList.remove(c)
 
@@ -99,7 +99,7 @@ def server(port):
         #New user
         c, addr = s.accept()
         #For debug purposes
-        print("Client {} has been connected to server".format(c))
+        print("Client {} has been connected to server\n".format(c))
         #Our list of online users
         cList.append(c)
 
