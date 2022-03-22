@@ -234,18 +234,36 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
     try:
         while True:
             msg = s.recv(1024).decode().strip()
+            print(msg)
+            if (msg.split("--")[0][:3] == "RES"):
+                print(convToEmjoi(msg.split("--")[1]))
+            elif (msg.split("--")[0][:3] == "REQ"):
+                str = msg.split("--")[0]
+                toSend = "RES{}-->{}".fromat(str[3:len(str)], name,
+                                             bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
+                                                 preSentencesPositive,
+                                                 preSentencesNeutral, preSentencesNegative))
+                s.send((toSend).encode().rjust(1024))
+                # Writing host message to screen, and responding to suggestion from host
 
+            elif (msg.split("--")[0][:4] == "HOST"):
+                print("Host>{}".format(convToEmjoi(msg.split("--")[1])))
+                toSend = "HOSTRES-->{}".fromat(name, bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
+                                                         preSentencesPositive,
+                                                         preSentencesNeutral, preSentencesNegative))
+                s.send((toSend).encode().rjust(1024))
+            #Response to host, from other participants
+            elif (msg.split("--")[0][:7] == "HOSTRES"):
+                print(convToEmjoi(msg.split("--")[1]))
+
+
+            #Parent thread wants to quit, and server is notified and agrees
+            #Time to stops listening to socket
             if (msg=="EXIT"):
                 s.socket()
                 break
 
-            if (msg.split("--")[0] == "RES{}".format(name)):
-              print(convToEmjoi(msg.split("--")[1]))
-            elif(msg.split("--")[0][:3] == "REQ"):
-                str = msg.split("--")[0]
-                toSend = "RES"+str[3:len(str)] + "--" + name + ">" + bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral, preSentencesPositive,
-                                      preSentencesNeutral, preSentencesNegative)
-                s.send((toSend).encode().rjust(1024))
+
     except:
         s.close()
         print("Client is shuting down")
@@ -281,13 +299,14 @@ def client(host, port, bot,name = None):
     s.connect((host, port))
     t1 = threading.Thread(target=listener, args=(
     s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral, preSentencesNegative,))
-    msg = s.recv(1024).decode().strip()
-    print(msg)
+
     t1.start()
 
     while True:
         try:
-            msg = input("Terminal::{}>".format(name))
+            #If one want it as user input
+            ##msg = input("Terminal::{}>".format(name))
+
             print(u"\n{}>{}".format(name,convToEmjoi(msg)))
             if(msg=="exit"):
                 s.send("EXIT".encode().rjust(1024))
