@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # a TCP/IP client that receives a message from server
-import codecs
+import sys
 import random
 import socket
 import threading
@@ -253,7 +253,7 @@ def client(host, port, bot):
     if(int(botNumber) <= 0 or int(botNumber) > 4):
         print("Illegal name of bot function")
         exit(-1)
-    name = names[int(botNumber-1)]
+    name = names[int(botNumber)-1]
     fileName = "preSentence{}.txt".format(botNumber)
 
     #Loading stuff that is important to make decision on how to respond to a sentence
@@ -284,5 +284,47 @@ def client(host, port, bot):
     s.close()
 
 
-client('localhost', 5000, bot1)
 
+
+def main(argv):
+
+    if(len(argv) == 2 and str(argv[1])=="-h" or str(argv[1])=="--help"):
+        print("Explanation of arguments\n")
+        print("#1 argument: hostname             --  type: string")
+        print("#2 argument: port number          --  type: integer")
+        print("#3 argument: name of bot function --  type: string")
+        exit(0)
+    if(len(argv) < 4):
+        print("Not enough arguments given")
+        exit(-1)
+    bot=bot1
+    localhost='localhost'
+    port=5000
+
+    if(argv[1].isprintable()):
+        localhost=str(argv[1])
+    else:
+        print("Localhost should be a string")
+        exit(-1)
+
+    if(argv[2].isnumeric()):
+        port=int(argv[2])
+    else:
+        print("Port should be a number")
+        exit(-1)
+
+    if(str(argv[3])=="bot1"):
+        bot=bot1
+    elif(str(argv[3])=="bot2"):
+        bot=bot2
+    elif (str(argv[3]) == "bot3"):
+        bot = bot3
+    else:
+        print("Bot function does not exist. Only bot1,bot2,bot3 and bot4 function exist")
+        exit(-1)
+    client(localhost, port, bot)
+
+
+
+if __name__ == "__main__":
+    main(sys.argv)

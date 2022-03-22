@@ -1,8 +1,8 @@
-# a TCP/IP server that sends a messages to client
+#!/usr/bin/python3
 
 import socket
+import sys
 import threading
-import time
 import select
 import random
 
@@ -81,7 +81,22 @@ def server(port):
         #One thread per user
         t1 = threading.Thread(target=serverFunc, args=(c,cList,verbs,))
         t1.start()
+def main(argv):
+    port=5000
+    if(len(argv) < 2):
+        print("Not enough arguments given")
+        exit(-1)
+    if(str(argv[1])=="-h" or str(argv[1])=="--help"):
+        print("Explanation of arguments:\n")
+        print("#1 argument: port number --  type: integer")
+        exit(0)
+    if(argv[1].isnumeric()):
+        port=int(argv[1])
+    else:
+        print("Port should be a number")
+        exit(-1)
+    server(port)
 
-
-server(5000)
+if __name__ == "__main__":
+    main(sys.argv)
 
