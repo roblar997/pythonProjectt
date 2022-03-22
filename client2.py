@@ -253,7 +253,7 @@ def client(host, port, bot):
     if(int(botNumber) <= 0 or int(botNumber) > 4):
         print("Illegal name of bot function")
         exit(-1)
-    name = names[int(botNumber-1)]
+    name = names[int(botNumber)]
     fileName = "preSentence{}.txt".format(botNumber)
 
     #Loading stuff that is important to make decision on how to respond to a sentence

@@ -2,18 +2,17 @@
 
 import socket
 import threading
+import time
 import select
 import random
 
 def serverFunc(c,cList,verbs):
   try:
-
-
     val = random.randint(0, len(verbs) - 1)
-
-    c.send((" Welcome to chat. All clients have bots installed," +
-             "that responds to verbs in sentences you come with. \n I suggest you make a sentence"+
-             " containing the word -- {} --   as the first verb in the sentence. \n To exit, write 'exit' in the terminal".format(verbs[val])).encode().rjust(1024))
+    welcomeMessage = "Welcome to chat. All clients have bots installed," \
+                       "that responds to verbs in sentences you come with. I suggest you make a sentence" \
+                       " containing the word -- " + verbs[val] + "--   as the first verb in the sentence"
+    c.send((welcomeMessage).encode().rjust(1024))
     while True:
 
         #Our sockets is non-blocking, so we just take whats ready
@@ -24,47 +23,24 @@ def serverFunc(c,cList,verbs):
                                                         cList)
         #Connection is ready to send to us
         if c in readable:
-
              msg = c.recv(1024)
-             # For debug purposes
-             print("Thread {} sending message. {} \n".format(c,msg.decode().strip()))
-             #Stop listening on server side
+             #It didnt send anything, so end conncection with client.
              if not msg:
-                 # For debug purposes
-                 print("Thread {} did get empty message. Is now breaking loop\n".format(c))
                  break
 
-             #Terminating a client, which means trying to send a EXIT signal to all bots associated
-             #with a client
-             msgDec = msg.decode().strip()
-             if msgDec[:4]=="EXIT":
-                 #Name of the client, that has all the bots
-                 name = msgDec[4:]
-                 for sock in writable:
-                        # For debug purposes
-                        print("Thread {} got EXIT signal\n".format(c))
-                        sock.send("EXIT{}".format(name).encode().rjust(1024))
+             #Everyone ready to receive a message, which mean that not everyone gets to see the full chat
+             #This makes sense if something is in realtime and we can accept that offline users arent supposed
+             #to get messages, for example in a realtime gaming chat. That something happens in realtime, is
+             #more important than wheter or not everyone gets all messages
+             for sock in writable:
+              #Make sure not to send to myself
+              if c != sock:
+                #Send message I just got received, to all than are able to receive.
+                sock.send(msg)
 
-             else:
-                #Everyone ready to receive a message, which mean that not everyone gets to see the full chat
-                #This makes sense if something is in realtime and we can accept that offline users arent supposed
-                #to get messages, for example in a realtime gaming chat. That something happens in realtime, is
-                 #more important than wheter or not everyone gets all messages
-                 for sock in writable:
-                 #Make sure not to send to myself
-                    if c != sock:
-                     # For debug purposes
-                     print("Thread {} sending message. {} to {} \n".format(c, msg.decode().strip(),sock))
-                     #Send message I just got received, to all than are able to receive.
-                     sock.send(msg)
-
-    #For debug purposes
-    print("Client {} has been removed from server\n".format(c))
     #Kick out user
     cList.remove(c)
   except:
-      # For debug purposes
-      print("Client {} has been removed from server\n".format(c))
       #Something went wrong, kick out user
       cList.remove(c)
 
@@ -80,10 +56,8 @@ def loadFromFile():
         verbs[idx] = verb.split(" ")[0]
     fileVerbs.close()
     return verbs
-
 def server(port):
     cList = []
-
     verbs = loadFromFile()
     #I am connecting to server using IP version 4 addresses, and using TCP socket.
     #AF_INET stands for ipv4 and SOCK_STREAM stands for TCP.
@@ -98,8 +72,9 @@ def server(port):
     while True:
         #New user
         c, addr = s.accept()
-        #For debug purposes
-        print("Client {} has been connected to server\n".format(c))
+        #Non bloking, that is we continue runing instead of waiting for the guy to send/receive
+        c.setblocking(0)
+
         #Our list of online users
         cList.append(c)
 
@@ -109,3 +84,4 @@ def server(port):
 
 
 server(5000)
+
