@@ -6,8 +6,13 @@ import threading
 import select
 import random
 
-
+#A function supposed to be used by a thread to send/recieve  messages from clients
+#
+#@param c connection
+#@param cList list of connections
+#@param list of verbs
 def serverFunc(c,cList,verbs):
+
   try:
 
 
@@ -20,31 +25,33 @@ def serverFunc(c,cList,verbs):
     #Everyone can see the full dialoge
     for sock in writable:
         sock.send(("HOST--Anyone want to {} ?").format(verbs[val]).encode().rjust(1024))
-    # Non bloking, that is we continue runing instead of waiting for the guy to send/receive
+
 
 
     while True:
 
         # Our sockets is non-blocking, so we just take whats ready
         # to receive or send, then send/receive and move on without any waiting.
-        # for the operation to be finished.
         readable, writable, exceptional = select.select(cList,
                                                         cList,
                                                         cList)
         #Connection is ready to send to us
         if c in readable:
              msg = c.recv(1024)
-             #Should not happen, disconnection
+             #Should not happen, disconecting from client
              if not msg:
                  break
 
              #start hosted initiated dialog to everyone
              if msg.decode().strip() == "HOST":
+                 #Use random verb/action to insert into a suggestion
                  val = random.randint(0, len(verbs) - 1)
+
                  for sock in writable:
+                     #Sugestion clients will respond to
                      sock.send(("HOST--Anyone want to {} ?").format(verbs[val]).encode().rjust(1024))
                  continue
-
+             #When clients wants to leave chat
              if msg.decode().strip() == "EXIT":
                  if c in writable:
                      c.send(msg)
@@ -56,7 +63,7 @@ def serverFunc(c,cList,verbs):
              #to get messages, for example in a realtime gaming chat. That something happens in realtime, is
              #more important than wheter or not everyone gets all messages
              for sock in writable:
-              #Make sure not to send to myself
+              #Make sure not to send back to the one who sent the message
               if c != sock:
                 #Send message I just got received, to all than are able to receive.
                 sock.send(msg)
@@ -101,12 +108,13 @@ def server(port):
         c.setblocking(0)
 
 
-        #Our list of online users
+        #add user to list of clients
         cList.append(c)
 
         #One thread per user
         t1 = threading.Thread(target=serverFunc, args=(c,cList,verbs,))
         t1.start()
+
 def main(argv):
     port=5000
     if(len(argv) < 2):

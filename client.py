@@ -12,7 +12,7 @@ import time
 #  Implementation could have been better, but it is not needed
 #
 #  @param Something one do, an action
-#  @sentence Sentence that may contain a verb
+#  @param Sentence that may contain a verb
 def extractAction(verbs, sentence):
     for word in sentence.split():
         if (word in verbs):
@@ -53,11 +53,6 @@ def convToEmjoi(msg):
 # By giving a response, one random generate a number with three choices in each.
 # Each choice has 3 response sentences, that is made based on a random generator
 # that gives a number and compared to values in chancesPositive <= val and chancesNeutral + chancesPositive <= val
-#
-# @param chancesPositive
-# @param sentence A sentence that may contain a verb.
-# @param chancesPositive list that contains elee
-#
 #
 #
 def bot1(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,preSentencesNegative,memory):
@@ -158,6 +153,7 @@ def bot4(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive,
     return res.format(action, actionNext),None
 ## All sentences and verbs are stored in files
 #  This will load all of those into lists, and
+#  @param presentenceFileName name of file containing sentences
 #  @return verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral, preSentencesNegative
 def loadFromFile(presentenceFileName):
 
@@ -237,23 +233,31 @@ def loadFromFile(fileName):
 # A function that listen to a socket, and send back a response
 def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,
              preSentencesNegative):
+
     #To be used by bots, if it uses memory
     currentMemory = None
+
     try:
         while True:
+
             msg = s.recv(1024).decode().strip()
+
             # PART OF 'Client to all client' protocol
             # When a client has written in terminal, and every client has responded through the bot,
             # it gets sent back to the client who sent it.
             # In this protocol, not the host protocol, the client sending stuff is the only one
             # supposed to see the responses from the bot of other clients
+
             if (msg.split("--")[0] == "RES{}".format(name)):
                 print(convToEmjoi(msg.split("--")[1]))
 
             # PART OF 'Client to all client' protocol
             # Everyone gets this message from the one client sending a message from terminal, through server
             elif (msg.split("--")[0][:3] == "REQ"):
+
                 str = msg.split("--")[0]
+
+                #Bot responds to message
                 response, currentMemory = bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
                                     preSentencesPositive,
                                     preSentencesNeutral, preSentencesNegative, currentMemory)
@@ -265,16 +269,23 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
             # PART OF 'Host to all clients' protocol
             # Bot respons of host suggestion given by other clients, sent through server
             elif (msg.split("--")[0][:7] == "HOSTRES"):
+                #Respons to Host's sugestion
                 print(convToEmjoi(msg.split("--")[1]))
+
             # PART OF 'Host to all clients' protocol
             # Suggestion from Host, that all clients are supposed to give response to
             elif (msg.split("--")[0][:4] == "HOST"):
+
                 print("\n\nHost>{}".format(convToEmjoi(msg.split("--")[1])))
+
                 response, currentMemory = bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
                                               preSentencesPositive,
                                               preSentencesNeutral, preSentencesNegative, currentMemory)
                 result = "{}>{}".format(name, response)
+
+                #Host is talking to all clients
                 print(convToEmjoi(result))
+
                 toSend = "HOSTRES--{}".format(result)
 
                 s.send((toSend).encode().rjust(1024))
