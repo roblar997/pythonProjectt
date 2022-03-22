@@ -234,27 +234,32 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
     try:
         while True:
             msg = s.recv(1024).decode().strip()
-            print(msg)
+
             if (msg.split("--")[0][:3] == "RES"):
                 print(convToEmjoi(msg.split("--")[1]))
             elif (msg.split("--")[0][:3] == "REQ"):
                 str = msg.split("--")[0]
-                toSend = "RES{}-->{}".fromat(str[3:len(str)], name,
+                toSend = "RES{}-->{}".format(str[3:len(str)], name,
                                              bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
                                                  preSentencesPositive,
                                                  preSentencesNeutral, preSentencesNegative))
                 s.send((toSend).encode().rjust(1024))
                 # Writing host message to screen, and responding to suggestion from host
 
-            elif (msg.split("--")[0][:4] == "HOST"):
-                print("Host>{}".format(convToEmjoi(msg.split("--")[1])))
-                toSend = "HOSTRES-->{}".fromat(name, bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
-                                                         preSentencesPositive,
-                                                         preSentencesNeutral, preSentencesNegative))
-                s.send((toSend).encode().rjust(1024))
-            #Response to host, from other participants
+                # Response to host, from other participants
             elif (msg.split("--")[0][:7] == "HOSTRES"):
                 print(convToEmjoi(msg.split("--")[1]))
+
+            elif (msg.split("--")[0][:4] == "HOST"):
+                print("Host>{}".format(convToEmjoi(msg.split("--")[1])))
+                response = "{}>{}".format(name, bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
+                                                         preSentencesPositive,
+                                                         preSentencesNeutral, preSentencesNegative))
+
+                toSend = "HOSTRES--{}".format(name, response)
+                print(convToEmjoi(response))
+                s.send((toSend).encode().rjust(1024))
+
 
 
             #Parent thread wants to quit, and server is notified and agrees
@@ -304,8 +309,9 @@ def client(host, port, bot,name = None):
 
     while True:
         try:
+            time.sleep(0.5)
             #If one want it as user input
-            ##msg = input("Terminal::{}>".format(name))
+            msg = input("Terminal::{}>".format(name))
 
             print(u"\n{}>{}".format(name,convToEmjoi(msg)))
             if(msg=="exit"):
