@@ -10,12 +10,13 @@ import time
 
 def serverFunc(c,cList,verbs):
   try:
-    val = random.randint(0, len(verbs) - 1)
+
 
     readable, writable, exceptional = select.select(cList,
                                                     cList,
                                                     cList)
 
+    val = random.randint(0, len(verbs) - 1)
     #Everyime a new client comes, host sends an initative dialoge to everyone.
     #Everyone can see the full dialoge
     for sock in writable:
@@ -38,6 +39,13 @@ def serverFunc(c,cList,verbs):
              #Should not happen disconnection
              if not msg:
                  break
+
+             #start hosted initiated dialog to everyone
+             if msg.decode().strip() == "HOST":
+                 val = random.randint(0, len(verbs) - 1)
+                 for sock in writable:
+                     sock.send(("HOST--Anyone want to {} ?").format(verbs[val]).encode().rjust(1024))
+                 continue
 
              if msg.decode().strip() == "EXIT":
                  print("{} got EXIT signal".format(c))

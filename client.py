@@ -234,12 +234,12 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
     try:
         while True:
             msg = s.recv(1024).decode().strip()
-            print(msg)
             if (msg.split("--")[0][:3] == "RES"):
                 print(convToEmjoi(msg.split("--")[1]))
+
             elif (msg.split("--")[0][:3] == "REQ"):
                 str = msg.split("--")[0]
-                toSend = "RES{}-->{}".format(str[3:len(str)], name,
+                toSend = "RES{}--{}>{}".format(str[3:len(str)], name,
                                              bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
                                                  preSentencesPositive,
                                                  preSentencesNeutral, preSentencesNegative))
@@ -248,16 +248,15 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
 
                 # Response to host, from other participants
             elif (msg.split("--")[0][:7] == "HOSTRES"):
-                print("OK")
                 print(convToEmjoi(msg.split("--")[1]))
 
             elif (msg.split("--")[0][:4] == "HOST"):
-                print("Host>{}".format(convToEmjoi(msg.split("--")[1])))
+                print("\n\nHost>{}".format(convToEmjoi(msg.split("--")[1])))
                 response = "{}>{}".format(name, bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
                                                          preSentencesPositive,
                                                          preSentencesNeutral, preSentencesNegative))
                 toSend = "HOSTRES--{}".format(response)
-                print(toSend)
+                print(convToEmjoi(response))
                 s.send((toSend).encode().rjust(1024))
 
 
@@ -318,6 +317,8 @@ def client(host, port, bot,name = None):
                 s.send("EXIT".encode().rjust(1024))
                 t1.join()
                 exit(0)
+            elif(msg=="host"):
+                s.send("HOST".encode().rjust(1024))
             else:
                 s.send(("REQ{}--{}".format(name,msg)).encode().rjust(1024))
             time.sleep(0.5)
