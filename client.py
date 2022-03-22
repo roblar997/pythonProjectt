@@ -85,10 +85,13 @@ def bot1(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive,
 def bot2(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,preSentencesNegative,memory):
 
     action = extractAction(verbs, sentence)
-    action2 = verbs[random.randint(0, len(verbs) - 1)]
+
     #No verb found, so use default response
     if action is None:
         return "This I do not get"
+
+    action2 = verbs[random.randint(0, len(verbs) - 1)]
+
     val = random.uniform(0, 1)
     rand = random.randint(0, len(preSentencesPositive) - 1)
 
@@ -132,11 +135,13 @@ def bot3(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive,
 def bot4(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,preSentencesNegative,memory):
 
     action = extractAction(verbs, sentence)
-    actionNext = nextAction(verbs,action)
-
     #No verb found, so use default response
     if action is None:
         return "ohm, this didnt go through my head"
+    actionNext = nextAction(verbs,action)
+
+
+
     val = random.uniform(0, 1)
     rand = random.randint(0, len(preSentencesPositive) - 1)
 
@@ -219,7 +224,7 @@ def loadFromFile(fileName):
     preSentencesPositive = []
 
     preSentences = filePreSentence.readlines()
-    #Negative, neutral or positive response
+    #Negative, neutral or positive responses
     for preSentence in preSentences:
         preSentencesNegative.append(preSentence.split("!!")[0].strip())
         preSentencesNeutral.append(preSentence.split("!!")[1].strip())
@@ -231,27 +236,38 @@ def loadFromFile(fileName):
 # A function that listen to a socket, and send back a response
 def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,
              preSentencesNegative):
+    #To be used by bots, if it uses memory
     currentMemory = None
     try:
         while True:
             msg = s.recv(1024).decode().strip()
-            if (msg.split("--")[0][:3] == "RES"):
+            # PART OF 'Client to all client' protocol
+            # When a client has written in terminal, and every client has responded through the bot,
+            # it gets sent back to the client who sent it.
+            # In this protocol, not the host protocol, the client sending stuff is the only one
+            # supposed to see the responses from the bot of other clients
+            if (msg.split("--")[0] == "RES{}".format(name)):
                 print(convToEmjoi(msg.split("--")[1]))
 
+            #PART OF 'Client to all client' protocol
+            #Everyone gets this message from the one client sending a message from terminal, through server
             elif (msg.split("--")[0][:3] == "REQ"):
                 str = msg.split("--")[0]
                 response,currentMemory = bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
                                                  preSentencesPositive,
                                                  preSentencesNeutral, preSentencesNegative,currentMemory)
 
+
                 toSend = "RES{}--{}>{}".format(str[3:len(str)], name,response)
                 s.send((toSend).encode().rjust(1024))
-                # Writing host message to screen, and responding to suggestion from host
 
-                # Response to host, from other participants
+
+            # PART OF 'Host to all clients' protocol
+            # Bot respons of host suggestion given by other clients, sent through server
             elif (msg.split("--")[0][:7] == "HOSTRES"):
                 print(convToEmjoi(msg.split("--")[1]))
-
+            # PART OF 'Host to all clients' protocol
+            # Suggestion from Host, that all clients are supposed to give response to
             elif (msg.split("--")[0][:4] == "HOST"):
                 print("\n\nHost>{}".format(convToEmjoi(msg.split("--")[1])))
                 response = "{}>{}".format(name, bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
