@@ -60,7 +60,7 @@ def convToEmjoi(msg):
 #
 #
 #
-def bot1(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,preSentencesNegative):
+def bot1(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,preSentencesNegative,memory):
     action = extractAction(verbs, sentence)
 
     #No verb found, so use default response
@@ -78,11 +78,11 @@ def bot1(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive,
     else:
         res = preSentencesNegative[rand]
 
-    return res.format(action)
+    return res.format(action),None
 
-# Same as bot 1, except that it also takes a random verb that it inserts into the sentence
+# Same as bot 1, except that it also takes a random verb from list of verbs that it inserts into the sentence
 #
-def bot2(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,preSentencesNegative):
+def bot2(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,preSentencesNegative,memory):
 
     action = extractAction(verbs, sentence)
     action2 = verbs[random.randint(0, len(verbs) - 1)]
@@ -101,11 +101,11 @@ def bot2(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive,
     else:
         res = preSentencesNegative[rand]
 
-    return res.format(action,action2)
+    return res.format(action,action2),None
 
-# Same as bot 1, except it adds ing to end and add it 2 places into the sentences - instead of 1
-#
-def bot3(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,preSentencesNegative):
+# Same as bot 1, except it adds ing for first {}. For second {} it takes memory of previous response made by this bot and adds ing to the end
+# If memory=None, then it get set to "jump"
+def bot3(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,preSentencesNegative,memory="jump"):
 
     action = extractAction(verbs, sentence)
 
@@ -124,12 +124,12 @@ def bot3(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive,
     else:
         res = preSentencesNegative[rand]
 
-    return res.format(action+"ing",action+"ing")
+    return res.format(action+"ing",memory+"ing"),action
 
 # Same as bot1, except it also takes a verb through function actionNext that is inserted into the sentence
 # actionNext finds next verb in dictonary, relative to the first verb found in given sentence
 #
-def bot4(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,preSentencesNegative):
+def bot4(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,preSentencesNegative,memory):
 
     action = extractAction(verbs, sentence)
     actionNext = nextAction(verbs,action)
@@ -149,7 +149,7 @@ def bot4(sentence, verbs, chancesPositive, chancesNeutral, preSentencesPositive,
     else:
         res = preSentencesNegative[rand]
 
-    return res.format(action, actionNext)
+    return res.format(action, actionNext),None
 ## All sentences and verbs are stored in files
 #  This will load all of those into lists, and
 #  @return verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral, preSentencesNegative
@@ -231,6 +231,7 @@ def loadFromFile(fileName):
 # A function that listen to a socket, and send back a response
 def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesPositive, preSentencesNeutral,
              preSentencesNegative):
+    currentMemory = None
     try:
         while True:
             msg = s.recv(1024).decode().strip()
@@ -239,10 +240,11 @@ def listener(s, name, bot, verbs, chancesPositive, chancesNeutral, preSentencesP
 
             elif (msg.split("--")[0][:3] == "REQ"):
                 str = msg.split("--")[0]
-                toSend = "RES{}--{}>{}".format(str[3:len(str)], name,
-                                             bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
+                response,currentMemory = bot(msg.split("--")[1], verbs, chancesPositive, chancesNeutral,
                                                  preSentencesPositive,
-                                                 preSentencesNeutral, preSentencesNegative))
+                                                 preSentencesNeutral, preSentencesNegative,currentMemory)
+
+                toSend = "RES{}--{}>{}".format(str[3:len(str)], name,response)
                 s.send((toSend).encode().rjust(1024))
                 # Writing host message to screen, and responding to suggestion from host
 
@@ -308,7 +310,7 @@ def client(host, port, bot,name = None):
 
     while True:
         try:
-
+            time.sleep(0.5)
             #If one want it as user input
             msg = input("Terminal::{}>".format(name))
 

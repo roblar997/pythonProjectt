@@ -35,7 +35,6 @@ def serverFunc(c,cList,verbs):
         #Connection is ready to send to us
         if c in readable:
              msg = c.recv(1024)
-             print(msg.decode().strip())
              #Should not happen disconnection
              if not msg:
                  break
